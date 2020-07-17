@@ -1,0 +1,87 @@
+version: '3'
+networks:
+  monitor-net:
+    driver: bridge
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - ./conf/:/etc/prometheus/
+      - ./data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=40d'
+      - '--web.enable-lifecycle'
+    restart: unless-stopped
+    expose:
+      - 9090
+    ports:
+      - "9090:9090"
+    networks:
+      - monitor-net
+
+  nodeexporter:
+    image: prom/node-exporter:latest
+    container_name: nodeexporter
+    user: root
+    privileged: true
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.ignored-mount-points=^/(sys|proc|dev|host|etc)($$|/)'
+    restart: unless-stopped
+    expose:
+      - 9100
+    ports:
+      - "9100:9100"
+    networks:
+      - monitor-net
+
+  postgres-exporter:
+    image: wrouesnel/postgres_exporter
+    container_name: postgresexporter
+    restart: always
+    volumes:
+      - ./queries.yaml:/etc/conf_exporter/queries.yaml
+    #command:
+    #  - '--disable-default-metrics'
+    #  - '--disable-settings-metrics'
+    environment:
+      #- DATA_SOURCE_NAME=postgresql://adminkt:Kt321#d@10.8.26.248:5432/ktdb?sslmode=disable
+      - DATA_SOURCE_URI=10.8.26.248:5432/ktdb?sslmode=disable
+      - DATA_SOURCE_USER=ps_kt
+      - DATA_SOURCE_PASS=ps_kt001
+      - PG_EXPORTER_EXTEND_QUERY_PATH=etc/conf_exporter/queries.yaml
+      #- PG_EXPORTER_DISABLE_DEFAULT_METRICS=true 
+      #- PG_EXPORTER_DISABLE_SETTINGS_METRICS=true
+    ports:
+      - "9187:9187"
+    networks:
+      - monitor-net
+
+  grafana:
+   image: grafana/grafana:latest
+   container_name: grafana
+   volumes:
+     - ./grafana/data:/var/lib/grafana
+     - ./grafana/datasources:/etc/grafana/datasources
+     - ./grafana/dashboards:/etc/grafana/dashboards
+   environment:
+     - GF_SECURITY_ADMIN_USER=${ADMIN_USER:-admin}
+     - GF_SECURITY_ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin}
+     - GF_USERS_ALLOW_SIGN_UP=false
+   restart: unless-stopped
+   expose:
+     - 3000
+   ports:
+     - 3000:3000
+   networks:
+     - monitor-net
