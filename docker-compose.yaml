@@ -55,8 +55,7 @@ services:
     #  - '--disable-default-metrics'
     #  - '--disable-settings-metrics'
     environment:
-      #- DATA_SOURCE_NAME=postgresql://adminkt:Kt321#d@10.8.26.248:5432/ktdb?sslmode=disable
-      - DATA_SOURCE_URI=10.8.26.248:5432/ktdb?sslmode=disable
+      - DATA_SOURCE_URI=<ip_database>:5432/ktdb?sslmode=disable
       - DATA_SOURCE_USER=ps_kt
       - DATA_SOURCE_PASS=ps_kt001
       - PG_EXPORTER_EXTEND_QUERY_PATH=etc/conf_exporter/queries.yaml
