@@ -1,0 +1,78 @@
+pg_database:
+  query: "SELECT pg_database.datname, pg_database_size(pg_database.datname) as size_bytes FROM pg_database"
+  master: true
+  cache_seconds: 30
+  metrics:
+    - datname:
+        usage: "LABEL"
+        description: "Name of the database"
+    - size_bytes:
+        usage: "GAUGE"
+        description: "Disk space used by the database"
+
+#it is work
+#pg_daily_load:
+#  query: "SELECT f.filial_id, f.filial_name, l.obj_owner, MAX(l.date_trans) as last_date_trans FROM kt_analytics.all_filial_v f LEFT JOIN kt_analytics.obj_log l ON l.obj_owner = 'kt_asr_'||f.pref AND l.status = 'END' AND l.obj_name = 'asr_service_all_t' AND date_trunc('days',l.date_trans) = date_trunc('days',LOCALTIMESTAMP) GROUP BY f.filial_id, f.filial_name, l.obj_owner"
+#  metrics:
+#    - filial_id:
+#        usage: "COUNTER"
+#        description: "id filial"
+#    - filial_name:
+#        usage: "LABEL"
+#        description: "filial name"
+#    - obj_name:
+#        usage: "LABEL"
+#        description: "object name"
+#    - last_date_trans:
+#        usage: "GAUGE"
+#        description: "date"
+        
+
+pg_monitoring_daily_load:
+  query: "SELECT num, filial_id, filial_name, table_name, action_type, loading_day, date_trans from kt_analytics.info_service_loading_v"
+#  master: true
+#  cache_seconds: 60
+  metrics:
+    - num:
+        usage: "LABEL"
+        description: "id"
+    - filial_id:
+        usage: "LABEL"
+        description: "id filial"
+    - filial_name:
+        usage: "LABEL" 
+        description: "filial name"
+    - table_name:
+        usage: "LABEL"
+        description: "table name"
+    - action_type:
+        usage: "LABEL"
+        description: "operation type"
+    - loading_day:
+        usage: "LABEL"
+        description: "loading day"
+    - date_trans:
+        usage: "GAUGE"
+        description: "date"
+
+#pg_load_monthly:
+#  query: "SELECT f.filial_id, f.filial_name, l.obj_owner||'.'||l.obj_name as table_name, l.action_type, l.date_trans, kt_analytics.to_template_type_f(l.description,'to_arr',' ',2) as ttt FROM kt_analytics.all_filial_v f LEFT JOIN kt_analytics.obj_log l ON l.obj_owner = 'kt_asr_'||f.pref AND l.status = 'END' AND l.obj_name = 'asr_service_t' WHERE 1=1"
+#  metrics:
+#    - filial_id_load:
+#        usage: "COUNTER"
+#        description: "id филиала"
+#    - filial_name_load:
+#        usage: "LABEL"
+#        description: "название филиала"
+#    - table_name_load:
+#        usage: "LABEL"
+#        description: "название таблицы"
+#    - action_type_load:
+#        usage: "LABEL"
+#        description: "название операции"
+#    - date_trans_load:
+#        usage: "GAUGE"
+#        description: "время последней транзакции"
+#    - ttt_loard:
+#        usage: "LABEL"
+#        description: "период заливки"
